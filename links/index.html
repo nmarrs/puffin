@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your agent returned 200. Was it right? · Links</title>
+<meta name="description" content="The cheat sheet and links from the talk: what to measure when your agent returns 200, and how to start.">
+<style>
+  :root {
+    --bg: #0b0b0f; --panel: #15151b; --line: #26262f; --text: #f1f1f4; --muted: #a3a3b0;
+    --orange: #ff6a1f; --green: #5fd38d; --amber: #f2b84b; --blue: #6ea8fe; --purple: #b48cff; --red: #ff6b6b;
+    --mono: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.55;
+         font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 28px 18px 56px; }
+  a { color: var(--text); text-decoration-color: var(--orange); text-underline-offset: 3px; }
+  a:hover { color: var(--orange); }
+  .eyebrow { font: 600 12px/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--orange); }
+  h1 { font-size: clamp(30px, 7vw, 46px); line-height: 1.1; margin: 10px 0 8px; letter-spacing: -.01em; }
+  h1 .ok { color: var(--green); }
+  h2 { font-size: 22px; margin: 44px 0 12px; }
+  .by { color: var(--muted); margin: 0; }
+  p { margin: 10px 0; }
+  .muted { color: var(--muted); }
+  .badges { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; }
+  .badge { font: 600 15px/1 var(--mono); padding: 9px 12px; border-radius: 999px; border: 1px solid; }
+  .badge small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+  .b200 { color: var(--green); border-color: color-mix(in srgb, var(--green) 55%, transparent); }
+  .b203 { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 55%, transparent); }
+  .codes { display: grid; gap: 10px; }
+  .code { display: grid; grid-template-columns: 74px 1fr; gap: 4px 14px; background: var(--panel);
+          border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .num { font: 700 28px/1 var(--mono); grid-row: span 3; padding-top: 2px; }
+  .name { font: 600 12px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .what { font-weight: 650; }
+  .measure { grid-column: 2; }
+  .where { grid-column: 2; font: 13px/1.5 var(--mono); color: var(--muted); }
+  .where b { color: var(--text); font-weight: 600; }
+  .c402 .num, .c203 .num, .c508 .num { color: var(--amber); }
+  .c409 .num { color: var(--blue); } .c418 .num { color: var(--purple); } .c451 .num { color: var(--red); }
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ol.steps li { counter-increment: s; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+                padding: 14px 16px 14px 58px; position: relative; }
+  ol.steps li::before { content: counter(s); position: absolute; left: 18px; top: 12px;
+                        font: 700 22px/1.2 var(--mono); color: var(--green); }
+  .grafana { display: block; margin-top: 6px; font-size: 15px; color: var(--muted); }
+  .grafana::before { content: "In Grafana: "; color: var(--orange); font: 600 12px/1 var(--mono);
+                     letter-spacing: .06em; text-transform: uppercase; }
+  code { font: 14px/1.5 var(--mono); overflow-wrap: anywhere; }
+  .code > *, ol.steps li { min-width: 0; }
+  main { overflow-wrap: break-word; }
+  pre { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+        overflow-x: auto; margin: 10px 0; }
+  pre code { font-size: 13.5px; white-space: pre; overflow-wrap: normal; }
+  ul.links { padding: 0; margin: 0; list-style: none; display: grid; gap: 8px; }
+  ul.links li { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  ul.links span { display: block; color: var(--muted); font-size: 14px; }
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  @media (min-width: 700px) {
+    .code { grid-template-columns: 90px 1fr 1fr; }
+    .num { grid-row: span 2; font-size: 32px; }
+    .measure { grid-column: 3; grid-row: 1 / span 2; }
+    .where { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">AI Coding Summit · November 17, 2026</div>
+  <h1>Your agent returned <span class="ok">200</span>. Was it right?</h1>
+  <p class="by">Nathan Marrs and Jack Gordley, Grafana Labs. The cheat sheet and the links from the talk.</p>
+
+  <h2>The idea</h2>
+  <p>Every agent response has two statuses. HTTP gives you the first one for free: <b>200 OK</b> means the request
+    made it there and back. The second one, whether the agent was right, you have to measure.</p>
+  <p>So keep returning 200 to the client, and record the second status as telemetry.</p>
+  <div class="badges" aria-label="Two statuses">
+    <span class="badge b200">HTTP 200<small>transport</small></span>
+    <span class="badge b203">203<small>outcome</small></span>
+  </div>
+
+  <h2>The codes, and what to measure</h2>
+  <p class="muted">Real HTTP status codes, borrowed as names for agent failures. Nothing returns them: each one maps
+    to a signal you can record.</p>
+  <div class="codes">
+    <div class="code c402"><div class="num">402</div><div class="name">Payment Required</div>
+      <div class="what">Right answer, double the bill</div>
+      <div class="measure">Cache-read input tokens ÷ input tokens, per agent and model
+        (<code>gen_ai.usage.cache_read.input_tokens</code>, <code>gen_ai.usage.input_tokens</code>). Alert when it drops.
+        Keep the system prompt static so the cache can match.</div>
+      <div class="where">Grafana: <b>Agent Observability › Analytics</b></div></div>
+    <div class="code c203"><div class="num">203</div><div class="name">Non-Authoritative Information</div>
+      <div class="what">Fluent, but not from the data</div>
+      <div class="measure">An LLM judge's groundedness score on sampled live traffic, written as
+        <code>gen_ai.evaluation.result</code> on the judged span. Alert on the pass rate, not single answers.</div>
+      <div class="where">Grafana: <b>Evaluations</b> (online rules)</div></div>
+    <div class="code c409"><div class="num">409</div><div class="name">Conflict</div>
+      <div class="what">Right yesterday, wrong today</div>
+      <div class="measure">Judge pass rate by flow and prompt version, before and after every change. Replay a
+        regression suite of real failures in CI and block changes that fail it.</div>
+      <div class="where">Grafana: <b>Experiments</b></div></div>
+    <div class="code c418"><div class="num">418</div><div class="name">I'm a teapot</div>
+      <div class="what">Asked to be something it isn't</div>
+      <div class="measure">A guard on the request path, tool results included. Record every decision: the rule,
+        the reason and the latency, so a spike in denials can page someone.</div>
+      <div class="where">Grafana: <b>Evaluations › Guards</b></div></div>
+    <div class="code c508"><div class="num">508</div><div class="name">Loop Detected</div>
+      <div class="what">Got there after 14 tool calls</div>
+      <div class="measure">Repeated tool calls per conversation or coding session. A loop often points at the
+        environment: a flaky test, a missing doc, a slow build.</div>
+      <div class="where">Grafana: <b>Conversations</b> and <b>Coding agents</b></div></div>
+    <div class="code c451"><div class="num">451</div><div class="name">Unavailable For Legal Reasons</div>
+      <div class="what">Said something it shouldn't</div>
+      <div class="measure">Redactions and blocked reads, before anything reaches the model or leaves the laptop.
+        Redact before export.</div>
+      <div class="where">Grafana: <b>Guards</b> (redaction)</div></div>
+  </div>
+
+  <h2>Start Monday with one agent</h2>
+  <ol class="steps">
+    <li>Export OpenTelemetry from one agent. Metadata only to start.
+      <span class="grafana">an Agent Observability SDK (Go, Python, TypeScript, Java, .NET), a framework
+        integration, or plain OTLP.</span></li>
+    <li>Tag spans with conversation ID, agent name and prompt version.
+      <span class="grafana">filter conversations by agent and compare versions.</span></li>
+    <li>Write one rubric for your scariest failure, and score live traffic with it.
+      <span class="grafana">an LLM judge as an online evaluation rule.</span></li>
+    <li>Send low scores to a human, and keep real failures as tests.
+      <span class="grafana">a review queue, then promote the conversation to a test case.</span></li>
+    <li>Block prompt, model and tool changes that fail the suite.
+      <span class="grafana">offline experiments, run in CI.</span></li>
+  </ol>
+  <p class="muted">A week of work, not a platform project. Everything here is OpenTelemetry, so it works with any
+    OTLP backend.</p>
+
+  <h2>Try it on your coding agent</h2>
+  <p>Claude Code exports its own OpenTelemetry metrics and events. Point it at any OTLP endpoint:</p>
+  <pre><code>export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=otlp OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+# optional: break cost down by repo or team
+export OTEL_RESOURCE_ATTRIBUTES="repo=my-repo,team=my-team"</code></pre>
+  <p>With Grafana Cloud, the <code>agento11y</code> CLI sets it up for you and sends sessions to Agent
+    Observability's Coding agents view, metadata only by default:</p>
+  <pre><code>brew install grafana/grafana/agento11y
+agento11y login      # paste the block from your stack's setup page
+agento11y claude     # or: agento11y codex</code></pre>
+  <p class="muted">Codex CLI also takes an <code>[otel]</code> section in <code>~/.codex/config.toml</code>, and
+    Copilot in VS Code exports traces, metrics and events.</p>
+
+  <h2>Go deeper</h2>
+  <ul class="links">
+    <li><a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry GenAI semantic conventions</a>
+      <span>Spans, metrics and events for agents, model calls and tools. Still marked Development, so pin a version.</span></li>
+    <li><a href="https://grafana.com/docs/grafana-cloud/observe-and-act/agent-observability/">Grafana Agent Observability docs</a>
+      <span>Conversations, online evaluations, guards, experiments and analytics.</span></li>
+    <li><a href="https://grafana.com/docs/grafana-cloud/observe-and-act/agent-observability/get-started/">Get started with Agent Observability</a>
+      <span>Enable it on a Grafana Cloud stack and send your first data.</span></li>
+    <li><a href="https://grafana.com/docs/grafana-cloud/observe-and-act/agent-observability/get-started/instrument-coding-agents">Set up and monitor coding agents</a>
+      <span>The agento11y CLI for Claude Code, Codex and others.</span></li>
+    <li><a href="https://code.claude.com/docs/en/monitoring-usage">Claude Code monitoring</a>
+      <span>Every metric and event Claude Code exports, and how to configure it.</span></li>
+    <li><a href="https://code.visualstudio.com/docs/agents/guides/monitoring-agents">Copilot agent monitoring in VS Code</a>
+      <span>OpenTelemetry traces, metrics and events from Copilot agents.</span></li>
+    <li><a href="https://youtu.be/XvgprsJDo3o">Agent Conf 2026: Agent Observability Beyond Vibes</a>
+      <span>Sven Großmann and Ivana Hučková's talk, which a lot of this builds on.</span></li>
+  </ul>
+
+  <footer>
+    Mission Control, Puffin-1 and its crew are made up. The agent, the model and the telemetry in the demo were real.
+    · <a href="https://github.com/nmarrs">github.com/nmarrs</a> · <a href="https://gordles.io">gordles.io</a>
+  </footer>
+</main>
+</body>
+</html>
