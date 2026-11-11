@@ -144,11 +144,13 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 # optional: break cost down by repo or team
 export OTEL_RESOURCE_ATTRIBUTES="repo=my-repo,team=my-team"</code></pre>
-  <p>With Grafana Cloud, the <code>agento11y</code> CLI sets it up for you and sends sessions to Agent
-    Observability's Coding agents view, metadata only by default:</p>
+  <p>To send your coding agent's sessions to Grafana, the <code>agento11y</code> CLI sets it up for you: sessions,
+    estimated cost, tokens and tool calls by repository and user, in Agent Observability's <b>Coding agents</b> view.
+    It sends metadata only by default, so prompts and code stay on your machine.</p>
   <pre><code>brew install grafana/grafana/agento11y
 agento11y login      # paste the block from your stack's setup page
-agento11y claude     # or: agento11y codex</code></pre>
+agento11y claude     # or: codex, copilot, opencode, pi
+agento11y doctor     # if nothing shows up</code></pre>
   <p class="muted">Codex CLI also takes an <code>[otel]</code> section in <code>~/.codex/config.toml</code>, and
     Copilot in VS Code exports traces, metrics and events.</p>
 
